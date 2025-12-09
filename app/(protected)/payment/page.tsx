@@ -8,6 +8,7 @@ import { api } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { Loader2, QrCode, CheckCircle2, Copy } from "lucide-react";
 import { APP_CONFIG } from "@/lib/constants";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function PaymentPage() {
   const params = useSearchParams();
@@ -22,7 +23,7 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'CONFIRM' | 'PIX_WAITING' | 'SUCCESS'>('CONFIRM');
   
-  const [pixPayload, setPixPayload] = useState<{ text: string, img?: string | null } | null>(null);
+  const [pixPayload, setPixPayload] = useState<{ text: string, img?: string | null, orderId?: string } | null>(null);
 
   async function handleConfirmPayment() {
     if (!user?.email) return;
@@ -39,7 +40,8 @@ export default function PaymentPage() {
       if (response.pixQrCodeText) {
          setPixPayload({
             text: response.pixQrCodeText,
-            img: response.pixQrCodeImageUrl
+            img: response.pixQrCodeImageUrl,
+            orderId: String(response.gatewayOrderId),
          });
          setStep('PIX_WAITING');
       } else if (response.statusPagamento === 'PAGO') {
@@ -54,8 +56,9 @@ export default function PaymentPage() {
     }
   }
 
-  function handlePixPaid() {
+  async function handlePixPaid() {
       setStep('SUCCESS');
+      api.validatePixPayment(pixPayload?.orderId ? pixPayload.orderId : "");
       setTimeout(() => router.push("/history"), 2500);
   }
 
@@ -107,16 +110,11 @@ export default function PaymentPage() {
           {step === 'PIX_WAITING' && pixPayload && (
              <div className="flex flex-col items-center w-full animate-in fade-in zoom-in-95 duration-300">
                 <div className="bg-white p-4 rounded-xl border border-slate-200 mb-4 shadow-inner flex justify-center">
-                    {/* Lógica de Exibição do QR Code */}
                     {pixPayload.img ? (
-                        // Se o backend mandou imagem, usa ela
                         <img src={pixPayload.img} alt="QR Pix" className="h-48 w-48 object-contain" />
                     ) : (
-                        // Se não mandou, gera o SVG no front (requer qrcode.react) OU mostra icone
-                        // Se não quiser instalar a lib agora, deixe apenas o <QrCode />
                         <div className="h-48 w-48 flex items-center justify-center">
-                           {/* <QRCodeSVG value={pixPayload.text} size={180} />  <-- Descomente se instalar a lib */}
-                           <QrCode className="h-32 w-32 text-slate-300" /> {/* Fallback simples */}
+                           <QRCodeSVG value={pixPayload.text} size={180} />
                         </div>
                     )}
                 </div>

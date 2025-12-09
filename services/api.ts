@@ -1,4 +1,12 @@
-import { CreatePurchaseRequest, PaymentMethod, PurchaseResponse } from "@/lib/types";
+import {
+  BalanceResponse,
+  CreatePurchaseRequest,
+  ExtratoItem,
+  FeedbackRequest,
+  GamificationData,
+  PaymentMethod,
+  PurchaseResponse,
+} from "@/lib/types";
 import { parseCookies, destroyCookie } from "nookies";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
@@ -70,16 +78,46 @@ export const api = {
   getMenu: (date: string, mealType: "ALMOCO" | "JANTAR") =>
     fetchClient(`/api/v1/cardapios?data=${date}&tipoRefeicao=${mealType}`),
 
-  createPurchase: (data: CreatePurchaseRequest): Promise<PurchaseResponse> => 
-    fetchClient('/api/v1/fichas/compras', { 
-      method: 'POST', 
-      body: JSON.stringify(data) 
+  createPurchase: (data: CreatePurchaseRequest): Promise<PurchaseResponse> =>
+    fetchClient("/api/v1/fichas/compras", {
+      method: "POST",
+      body: JSON.stringify(data),
     }),
 
   forgotPassword: (email: string) =>
     fetchClient(`/auth/esqueci-senha?email=${encodeURIComponent(email)}`, {
       method: "POST",
     }),
+
+  validatePixPayment: (purchaseId: string) =>
+    fetchClient(`/api/v1/fichas/pagamentos/webhook/pagbank-simulado`, {
+      method: "POST",
+      body: JSON.stringify({
+        orderId: purchaseId,
+        status: "PAID",
+      }),
+    }),
+
+  consumeToken: (email: string, mealType: "ALMOCO" | "JANTAR") =>
+    fetchClient(
+      `/api/v1/fichas/utilizar?email=${email}&tipoRefeicao=${mealType}`,
+      { method: "POST" }
+    ),
+
+  getGamification: (email: string): Promise<GamificationData> =>
+    fetchClient(`/api/v1/pontuacao?email=${email}`),
+
+  sendFeedback: (data: FeedbackRequest) =>
+    fetchClient(`/api/v1/feedback/refeicoes`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getBalance: (email: string): Promise<BalanceResponse> =>
+    fetchClient(`/api/v1/extrato/saldo?email=${email}`),
+
+  getExtract: (email: string): Promise<ExtratoItem[]> =>
+    fetchClient(`/api/v1/extrato/historico?email=${email}`),
 
   resetPassword: (token: string, novaSenha: string) =>
     fetchClient(

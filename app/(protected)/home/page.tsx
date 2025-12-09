@@ -4,54 +4,45 @@ import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/home/DashboardHeader";
 import { MealsSummary } from "@/components/home/MealsSummary";
 import { MenuTable } from "@/components/home/MenuTable";
+import { UseTicketModal } from "@/components/home/UseTicketModal"; // Importe o modal novo
+import { FeedbackModal } from "@/components/home/FeedbackModal";   // Importe o modal de avaliação
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/services/api";
 
-interface HistoryItem {
-  statusPagamento: string;
-  quantidade: number;
-}
-
 export default function HomePage() {
   const { user, logout } = useAuth();
+  
   const [lunchBalance, setLunchBalance] = useState(0);
   const [dinnerBalance, setDinnerBalance] = useState(0);
   const [loadingBalance, setLoadingBalance] = useState(true);
 
-  useEffect(() => {
-    async function fetchBalance() {
-      if (!user?.email) return;
+  const [isUseModalOpen, setUseModalOpen] = useState(false);
+  const [isFeedbackOpen, setFeedbackOpen] = useState(false);
+  const [lastConsumedMeal, setLastConsumedMeal] = useState<'ALMOCO' | 'JANTAR'>('ALMOCO');
 
-      try {
-        const history = await api.getHistory(user.email);
-
-        const paidItems = history.filter(
-          (item: HistoryItem) => item.statusPagamento === "PAGO"
-        );
-
-        const totalLunch = paidItems.reduce(
-          (acc: any, curr: { quantidadeAlmoco: any; }) => acc + (curr.quantidadeAlmoco || 0),
-          0
-        );
-        const totalDinner = paidItems.reduce(
-          (acc: any, curr: { quantidadeJantar: any; }) => acc + (curr.quantidadeJantar || 0),
-          0
-        );
-
-        setLunchBalance(totalLunch);
-        setDinnerBalance(totalDinner);
-      } catch (error) {
-        console.error("Erro ao carregar saldo", error);
-      } finally {
-        setLoadingBalance(false);
-      }
+  const fetchBalance = async () => {
+    if (!user?.email) return;
+    try {
+      const data = await api.getBalance(user.email);
+      setLunchBalance(data.saldoAlmoco);
+      setDinnerBalance(data.saldoJantar);
+    } catch (error) {
+      console.error("Erro ao carregar saldo", error);
+    } finally {
+      setLoadingBalance(false);
     }
+  };
 
+  useEffect(() => {
     fetchBalance();
   }, [user]);
 
-  console.log(user);
-  
+  const handleUseSuccess = (mealType: 'ALMOCO' | 'JANTAR') => {
+    setLastConsumedMeal(mealType);
+    fetchBalance();
+    setFeedbackOpen(true);
+  };
+
   return (
     <main className="min-h-screen bg-slate-50/50 flex justify-center pb-28">
       <div className="w-full max-w-md flex flex-col">
@@ -74,11 +65,25 @@ export default function HomePage() {
             lunchBalance={lunchBalance}
             dinnerBalance={dinnerBalance}
             loading={loadingBalance}
+            onConsumeClick={() => setUseModalOpen(true)}
           />
 
           <MenuTable />
         </section>
       </div>
+
+      <UseTicketModal 
+        isOpen={isUseModalOpen} 
+        onClose={() => setUseModalOpen(false)}
+        onSuccess={handleUseSuccess}
+      />
+
+      <FeedbackModal 
+        isOpen={isFeedbackOpen} 
+        onClose={() => setFeedbackOpen(false)}
+        mealType={lastConsumedMeal}
+      />
+
     </main>
   );
 }

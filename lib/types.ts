@@ -37,8 +37,30 @@ export interface PurchaseResponse {
   statusPagamento: PaymentStatus;
   formaPagamento: PaymentMethod;
   dataCompraFormatada: string;
+  gatewayOrderId?: number;
   pixQrCodeText?: string;
   pixQrCodeImageUrl?: string | null;
+}
+
+export interface BalanceResponse {
+  email: string;
+  saldoAlmoco: number;
+  saldoJantar: number;
+}
+
+export interface ExtratoItem {
+  id: number;
+  tipoOperacao: string;
+  descricao: string;
+  qtdAlmoco: number;
+  qtdJantar: number;
+  saldoAlmocoResultante: number;
+  saldoJantarResultante: number;
+  dataHora: string;
+  
+  compraId?: number;
+  valorPago?: number;
+  formaPagamento?: string;
 }
 
 export interface MenuItem {
@@ -47,8 +69,29 @@ export interface MenuItem {
   notes?: string;
 }
 
+export interface MealTicket {
+  code: string; 
+  type: 'ALMOCO' | 'JANTAR';
+  generatedAt: string;
+}
+
 export interface MenuResponse {
   date: string;
   meal: "ALMOCO" | "JANTAR";
   slots: MenuItem[];
+}
+
+export interface GamificationData {
+  totalPontos: number;
+  nivel: number;
+  pontosParaProximoNivel: number;
+}
+
+export interface FeedbackRequest {
+  nome: string;
+  email: string;
+  date: string;
+  mealType: 'ALMOCO' | 'JANTAR';
+  rating: number;
+  comentario: string;
 }
