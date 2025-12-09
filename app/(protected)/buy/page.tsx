@@ -6,108 +6,127 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Minus, Plus, Utensils, Moon } from "lucide-react";
-
-const TICKET_PRICE = 3.0;
+import { APP_CONFIG } from "@/lib/constants"; 
 
 export default function BuyPage() {
-  const [buyLunch, setBuyLunch] = useState(true);
-  const [buyDinner, setBuyDinner] = useState(false);
-  const [lunchQty, setLunchQty] = useState(1);
+  const [lunchQty, setLunchQty] = useState(0);
   const [dinnerQty, setDinnerQty] = useState(0);
+  const [checkLunch, setCheckLunch] = useState(true);
+  const [checkDinner, setCheckDinner] = useState(false);
+
+  const handleCheckLunch = (checked: boolean) => {
+    setCheckLunch(checked);
+    if (!checked) setLunchQty(0);
+    else if (lunchQty === 0) setLunchQty(1);
+  };
+
+  const handleCheckDinner = (checked: boolean) => {
+    setCheckDinner(checked);
+    if (!checked) setDinnerQty(0);
+    else if (dinnerQty === 0) setDinnerQty(1);
+  };
 
   const total = useMemo(() => {
-    const lt = buyLunch ? lunchQty * TICKET_PRICE : 0;
-    const dt = buyDinner ? dinnerQty * TICKET_PRICE : 0;
-    return (lt + dt).toFixed(2);
-  }, [buyLunch, buyDinner, lunchQty, dinnerQty]);
+    const lTotal = checkLunch ? lunchQty * APP_CONFIG.TICKET_PRICE : 0;
+    const dTotal = checkDinner ? dinnerQty * APP_CONFIG.TICKET_PRICE : 0;
+    return (lTotal + dTotal).toFixed(2);
+  }, [checkLunch, checkDinner, lunchQty, dinnerQty]);
+
+  const hasItems = (checkLunch && lunchQty > 0) || (checkDinner && dinnerQty > 0);
+
+  const queryParams = {
+    qtdAlmoco: checkLunch ? lunchQty : 0,
+    qtdJantar: checkDinner ? dinnerQty : 0,
+    totalDisplay: total 
+  };
 
   return (
-    <main className="min-h-screen bg-slate-50 flex justify-center">
-      <div className="w-full max-w-md px-4 pt-6 pb-28">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-4">Compra</h1>
-        <p className="text-sm text-slate-500 mb-4">Selecione as opções:</p>
+    <main className="flex justify-center pt-6 px-4 pb-24">
+      <div className="w-full max-w-md">
+        <h1 className="text-2xl font-bold text-slate-900 mb-1">Comprar Fichas</h1>
+        <p className="text-sm text-slate-500 mb-6">
+          Valor unitário: R$ {APP_CONFIG.TICKET_PRICE.toFixed(2)}
+        </p>
 
-        <Card className="p-4 space-y-4">
+        <Card className="p-4 space-y-6 bg-white shadow-sm border-slate-100">
+          
+          {/* Seção Almoço */}
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-3">
-              <Checkbox
-                checked={buyDinner}
-                onCheckedChange={(v) => setBuyDinner(!!v)}
-              />
-              <span className="flex items-center gap-2 text-slate-700">
-                <Moon className="h-4 w-4" /> Jantar
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <Checkbox checked={checkLunch} onCheckedChange={handleCheckLunch} />
+              <span className="flex items-center gap-2 text-slate-700 font-medium">
+                <Utensils className="h-4 w-4 text-slate-500" /> Almoço
               </span>
             </label>
-            <div className="flex items-center gap-2">
-              <button
-                className="h-6 w-6 rounded-full bg-slate-100 grid place-items-center"
-                onClick={() => setDinnerQty((q) => Math.max(0, q - 1))}
-                aria-label="Diminuir quantidade do jantar"
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="w-6 text-center text-slate-700">
-                {dinnerQty}
-              </span>
-              <button
-                className="h-6 w-6 rounded-full bg-slate-100 grid place-items-center"
-                onClick={() => setDinnerQty((q) => q + 1)}
-                aria-label="Aumentar quantidade do jantar"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-3">
+              <CounterButton 
+                icon={Minus} 
+                onClick={() => setLunchQty(q => Math.max(0, q - 1))}
+                disabled={!checkLunch || lunchQty <= 0} 
+              />
+              <span className="w-6 text-center font-medium text-slate-900">{lunchQty}</span>
+              <CounterButton 
+                icon={Plus} 
+                onClick={() => setLunchQty(q => q + 1)}
+                disabled={!checkLunch} 
+              />
             </div>
           </div>
 
+          {/* Seção Jantar */}
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-3">
-              <Checkbox
-                checked={buyLunch}
-                onCheckedChange={(v) => setBuyLunch(!!v)}
-              />
-              <span className="flex items-center gap-2 text-slate-700">
-                <Utensils className="h-4 w-4" /> Almoço
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <Checkbox checked={checkDinner} onCheckedChange={handleCheckDinner} />
+              <span className="flex items-center gap-2 text-slate-700 font-medium">
+                <Moon className="h-4 w-4 text-slate-500" /> Jantar
               </span>
             </label>
-            <div className="flex items-center gap-2">
-              <button
-                className="h-6 w-6 rounded-full bg-slate-100 grid place-items-center"
-                onClick={() => setLunchQty((q) => Math.max(0, q - 1))}
-                aria-label="Diminuir quantidade do almoço"
-              >
-                <Minus className="h-4 w-4" />
-              </button>
-              <span className="w-6 text-center text-slate-700">{lunchQty}</span>
-              <button
-                className="h-6 w-6 rounded-full bg-slate-100 grid place-items-center"
-                onClick={() => setLunchQty((q) => q + 1)}
-                aria-label="Aumentar quantidade do almoço"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-3">
+              <CounterButton 
+                icon={Minus} 
+                onClick={() => setDinnerQty(q => Math.max(0, q - 1))}
+                disabled={!checkDinner || dinnerQty <= 0} 
+              />
+              <span className="w-6 text-center font-medium text-slate-900">{dinnerQty}</span>
+              <CounterButton 
+                icon={Plus} 
+                onClick={() => setDinnerQty(q => q + 1)}
+                disabled={!checkDinner} 
+              />
             </div>
           </div>
 
-          <div className="pt-2 flex justify-center">
-            <Button variant="outline" className="text-blue-600 border-blue-500">
-              Adicionar item
-            </Button>
-          </div>
         </Card>
 
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-base text-slate-700">Total</span>
-          <span className="text-lg font-semibold text-slate-900">
-            R$ {total}
-          </span>
+        <div className="flex items-center justify-between mt-6 px-2">
+          <span className="text-base text-slate-600">Total a pagar</span>
+          <span className="text-2xl font-bold text-blue-600">R$ {total}</span>
         </div>
 
-        <Link href={{ pathname: "/payment", query: { total } }}>
-          <Button className="w-full mt-4 bg-linear-to-r from-blue-600 to-sky-500">
-            Pagamento
+        <Link 
+          href={{ pathname: "/payment", query: queryParams }} 
+          className={!hasItems ? "pointer-events-none opacity-50" : ""}
+        >
+          <Button 
+            className="w-full mt-6 bg-gradient-to-r from-blue-600 to-sky-500 h-12 text-base shadow-lg shadow-blue-200"
+            disabled={!hasItems}
+          >
+            Ir para Pagamento
           </Button>
         </Link>
       </div>
     </main>
+  );
+}
+
+function CounterButton({ icon: Icon, onClick, disabled }: any) {
+  return (
+    <button
+      className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 active:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed grid place-items-center transition-colors text-slate-600"
+      onClick={onClick}
+      disabled={disabled}
+    >
+      <Icon className="h-4 w-4" />
+    </button>
   );
 }

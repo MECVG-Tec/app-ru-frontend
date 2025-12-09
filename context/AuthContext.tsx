@@ -1,125 +1,131 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { useRouter } from "next/navigation";
+import { setCookie, destroyCookie, parseCookies } from "nookies";
+import { api } from "@/services/api";
+import { RegisterRequest } from "@/lib/types";
 
 type User = {
-  name: string;
   email: string;
+  name?: string;
+  is_student?: boolean;
+  accessibilityOptions?: {
+    highContrast: boolean;
+    largeText: boolean;
+  };
 };
 
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { name: string; email: string; password: string }) => Promise<void>;
-  logout: () => Promise<void>;
+  register: (data: RegisterRequest) => Promise<void>;
+  logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_ROUTES = ['/', '/login', '/register'];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/me', {
-          method: 'GET',
-          credentials: 'include',
-        });
+    const {
+      "ru-facil-token": token,
+      "ru-facil-email": savedEmail,
+      "ru-facil-cliente": savedCliente,
+    } = parseCookies();
 
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          setUser(null);
-        }
-      } catch {
-        setUser(null);
-      } finally {
-        setIsReady(true);
-      }
-    };
-
-    fetchUser();
+    console.log("savedCliente: ", savedCliente);
+    
+    if (token && savedEmail && savedCliente) {
+      setUser({
+        email: savedEmail,
+        name: JSON.parse(savedCliente).nome || savedEmail.split("@")[0],
+        is_student: JSON.parse(savedCliente).ehAluno,
+        accessibilityOptions: {
+          highContrast: JSON.parse(savedCliente).prefereAltoContraste,
+          largeText: JSON.parse(savedCliente).prefereFonteGrande,
+        },
+      });
+    }
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    if (!isReady) return;
-
-    const isPublic = PUBLIC_ROUTES.includes(pathname);
-
-    if (!user && !isPublic) {
-      router.replace('/login');
-    }
-
-    if (user && (pathname === '/' || pathname === '/login' || pathname === '/register')) {
-      router.replace('/home');
-    }
-  }, [isReady, pathname, router, user]);
-
   async function login(email: string, password: string) {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    if (!res.ok) {
-      throw new Error('Credenciais inválidas');
-    }
-
-    const data = await res.json();
-    setUser(data.user);
-    router.push('/home');
-  }
-
-  async function register(data: { name: string; email: string; password: string }) {
-    await login(data.email, data.password);
-  }
-
-  async function logout() {
     try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await api.login({ email, senha: password });
+
+      const token = response.token || response;
+
+      setCookie(null, "ru-facil-token", token, {
+        maxAge: 7 * 24 * 60 * 60,
+        path: "/",
       });
-    } finally {
-      setUser(null);
-      router.push('/login');
+
+      setCookie(null, "ru-facil-cliente", JSON.stringify(response.cliente), {
+        maxAge: 7 * 24 * 60 * 60,
+        path: "/",
+      });
+
+      setCookie(null, "ru-facil-email", email, {
+        maxAge: 7 * 24 * 60 * 60,
+        path: "/",
+      });
+
+      setUser({ email, name: email.split("@")[0] });
+      router.push("/home");
+    } catch (error) {
+      console.error("Erro no login:", error);
+      throw error;
     }
   }
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    login,
-    register,
-    logout,
-  };
-
-  if (!isReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
-        Carregando...
-      </div>
-    );
+  async function register(data: RegisterRequest) {
+    try {
+      await api.register(data);
+      await login(data.email, data.senha);
+    } catch (error) {
+      console.error("Erro no registro:", error);
+      throw error;
+    }
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  function logout() {
+    destroyCookie(null, "ru-facil-token");
+    destroyCookie(null, "ru-facil-email");
+    destroyCookie(null, "ru-facil-cliente");
+    setUser(null);
+    router.push("/login");
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        loading,
+        login,
+        register,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }

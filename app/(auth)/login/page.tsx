@@ -1,11 +1,10 @@
-'use client';
+"use client";
 
 import { LoginForm } from "@/components/auth/LoginForm";
 
-
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-linear-to-b from-blue-600 to-sky-400">
+    <main className="min-h-screen flex items-center justify-center">
       <div className="w-full max-w-md">
         <LoginForm />
       </div>
