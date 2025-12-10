@@ -1,6 +1,7 @@
 "use client";
 
 import { BottomNav } from "@/components/nav/BottomNav";
+import { SupportButton } from "@/components/support/SupportButton";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ export default function ProtectedLayout({
       isHighContrast ? "bg-black" : "bg-slate-50"
     )}>
       {children}
+      <SupportButton />
       <BottomNav />
     </div>
   );

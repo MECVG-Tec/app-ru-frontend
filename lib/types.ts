@@ -26,6 +26,16 @@ export interface CreatePurchaseRequest {
   cardLast4?: string;
 }
 
+export type SupportCategory = 'DUVIDA' | 'SUGESTAO' | 'SUPORTE_TECNICO' | 'OUTRO';
+
+export interface SupportRequest {
+  nome: string;
+  email: string;
+  categoria: SupportCategory;
+  assunto: string;
+  mensagem: string;
+}
+
 export interface AccessibilityPreferences {
   email: string;
   prefereAltoContraste: boolean;

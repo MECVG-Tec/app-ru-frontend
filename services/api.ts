@@ -7,6 +7,7 @@ import {
   GamificationData,
   PaymentMethod,
   PurchaseResponse,
+  SupportRequest,
 } from "@/lib/types";
 import { parseCookies, destroyCookie } from "nookies";
 
@@ -81,6 +82,12 @@ export const api = {
 
   createPurchase: (data: CreatePurchaseRequest): Promise<PurchaseResponse> =>
     fetchClient("/api/v1/fichas/compras", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  sendSupportMessage: (data: SupportRequest) =>
+    fetchClient("/api/v1/suporte/mensagens", {
       method: "POST",
       body: JSON.stringify(data),
     }),
