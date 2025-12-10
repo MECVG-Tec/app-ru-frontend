@@ -4,19 +4,22 @@ import { useEffect, useState } from "react";
 import { api } from "@/services/api";
 import { MenuResponse } from "@/lib/types";
 import dayjs from "dayjs";
-import "dayjs/locale/pt-br"; // Importante para tradução
+import "dayjs/locale/pt-br";
+import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
 
-// Configura o locale globalmente
 dayjs.locale("pt-br");
 
 export function MenuTable() {
+  const { user } = useAuth();
+  const isHighContrast = user?.accessibilityOptions?.highContrast;
+  const isLargeText = user?.accessibilityOptions?.largeText;
+
   const [almoco, setAlmoco] = useState<MenuResponse | null>(null);
   const [jantar, setJantar] = useState<MenuResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Formato para API: YYYY-MM-DD
   const todayApi = dayjs().format("YYYY-MM-DD");
-  // Formato para Exibição: segunda-feira, 08 de dezembro...
   const todayDisplay = dayjs().format("dddd, DD [de] MMMM");
 
   useEffect(() => {
@@ -56,35 +59,67 @@ export function MenuTable() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 animate-pulse space-y-3">
-        <div className="h-4 bg-slate-200 rounded w-1/3"></div>
-        <div className="h-20 bg-slate-100 rounded"></div>
+      <div className={cn(
+        "rounded-xl p-6 shadow-sm border animate-pulse space-y-3",
+        isHighContrast ? "bg-zinc-900 border-zinc-700" : "bg-white border-slate-100"
+      )}>
+        <div className={cn("h-4 rounded w-1/3", isHighContrast ? "bg-zinc-700" : "bg-slate-200")}></div>
+        <div className={cn("h-20 rounded", isHighContrast ? "bg-zinc-800" : "bg-slate-100")}></div>
       </div>
     );
   }
 
   return (
-    <section className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-      <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-100">
-        <h2 className="text-base font-semibold text-slate-900">Cardápio do Dia</h2>
-        <p className="text-xs text-slate-500 capitalize">{todayDisplay}</p>
+    <section className={cn(
+      "rounded-2xl shadow-sm overflow-hidden border transition-colors",
+      isHighContrast ? "bg-black border-white" : "bg-white border-slate-100"
+    )}>
+      <div className={cn(
+        "px-4 py-3 border-b transition-colors",
+        isHighContrast 
+          ? "bg-zinc-900 border-white text-yellow-400" 
+          : "bg-slate-50/50 border-slate-100 text-slate-900"
+      )}>
+        <h2 className={cn("font-semibold", isLargeText ? "text-lg" : "text-base")}>Cardápio do Dia</h2>
+        <p className={cn(
+          "capitalize", 
+          isHighContrast ? "text-white" : "text-slate-500",
+          isLargeText ? "text-sm" : "text-xs"
+        )}>
+          {todayDisplay}
+        </p>
       </div>
 
       <div className="p-0">
-        <div className="grid grid-cols-3 gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50/80 px-4 py-2 border-b border-slate-100">
+        <div className={cn(
+          "grid grid-cols-3 gap-2 font-bold uppercase tracking-wider px-4 py-2 border-b",
+          isHighContrast 
+            ? "bg-zinc-800 text-white border-white" 
+            : "bg-slate-50/80 text-slate-500 border-slate-100",
+          isLargeText ? "text-xs" : "text-[10px]"
+        )}>
           <span className="text-left">Item</span>
-          <span className="text-center text-blue-600">Almoço</span>
-          <span className="text-center text-indigo-600">Jantar</span>
+          <span className={cn("text-center", isHighContrast ? "text-yellow-400" : "text-blue-600")}>Almoço</span>
+          <span className={cn("text-center", isHighContrast ? "text-yellow-400" : "text-indigo-600")}>Jantar</span>
         </div>
 
-        <div className="divide-y divide-slate-100">
+        <div className={cn("divide-y", isHighContrast ? "divide-zinc-700" : "divide-slate-100")}>
           {rows.map((row) => (
-            <div key={row.key} className="grid grid-cols-3 gap-2 py-3 px-4 text-xs hover:bg-slate-50/50 transition-colors">
-              <span className="font-semibold text-slate-700 flex items-center">{row.label}</span>
-              <span className="text-center text-slate-600 leading-tight flex items-center justify-center">
+            <div key={row.key} className={cn(
+              "grid grid-cols-3 gap-2 py-3 px-4 transition-colors",
+              isHighContrast ? "hover:bg-zinc-900 text-white" : "hover:bg-slate-50/50 text-slate-600",
+              isLargeText ? "text-sm" : "text-xs"
+            )}>
+              <span className={cn(
+                "font-semibold flex items-center", 
+                isHighContrast ? "text-yellow-400" : "text-slate-700"
+              )}>
+                {row.label}
+              </span>
+              <span className="text-center leading-tight flex items-center justify-center">
                 {getDish(almoco, row.key)}
               </span>
-              <span className="text-center text-slate-600 leading-tight flex items-center justify-center">
+              <span className="text-center leading-tight flex items-center justify-center">
                 {getDish(jantar, row.key)}
               </span>
             </div>

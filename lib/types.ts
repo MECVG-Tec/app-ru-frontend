@@ -26,6 +26,13 @@ export interface CreatePurchaseRequest {
   cardLast4?: string;
 }
 
+export interface AccessibilityPreferences {
+  email: string;
+  prefereAltoContraste: boolean;
+  prefereLinguagemSimples: boolean;
+  prefereFonteGrande: boolean;
+}
+
 export interface PurchaseResponse {
   id: number;
   clienteId: number;

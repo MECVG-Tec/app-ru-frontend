@@ -1,4 +1,5 @@
 import {
+  AccessibilityPreferences,
   BalanceResponse,
   CreatePurchaseRequest,
   ExtratoItem,
@@ -110,6 +111,12 @@ export const api = {
   sendFeedback: (data: FeedbackRequest) =>
     fetchClient(`/api/v1/feedback/refeicoes`, {
       method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateAccessibility: (data: AccessibilityPreferences) =>
+    fetchClient("/api/v1/acessibilidade", {
+      method: "PUT",
       body: JSON.stringify(data),
     }),
 

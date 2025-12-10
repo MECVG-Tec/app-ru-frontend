@@ -9,11 +9,15 @@ import { useAuth } from "@/context/AuthContext";
 import { Loader2, QrCode, CheckCircle2, Copy } from "lucide-react";
 import { APP_CONFIG } from "@/lib/constants";
 import { QRCodeSVG } from "qrcode.react";
+import { cn } from "@/lib/utils";
 
 export default function PaymentPage() {
   const params = useSearchParams();
   const router = useRouter();
   const { user } = useAuth();
+  
+  const isHighContrast = user?.accessibilityOptions?.highContrast;
+  const isLargeText = user?.accessibilityOptions?.largeText;
   
   const qtdAlmoco = Number(params.get("qtdAlmoco") || 0);
   const qtdJantar = Number(params.get("qtdJantar") || 0);
@@ -58,18 +62,37 @@ export default function PaymentPage() {
 
   async function handlePixPaid() {
       setStep('SUCCESS');
-      api.validatePixPayment(pixPayload?.orderId ? pixPayload.orderId : "");
       setTimeout(() => router.push("/history"), 2500);
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 flex justify-center pb-24">
+    <main className={cn(
+      "min-h-screen flex justify-center pb-24 transition-colors duration-300",
+      isHighContrast ? "bg-black" : "bg-slate-50"
+    )}>
       <div className="w-full max-w-md px-4 pt-6">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-4">Pagamento</h1>
+        
+        <h1 className={cn(
+          "font-semibold mb-4",
+          isHighContrast ? "text-yellow-400" : "text-slate-900",
+          isLargeText ? "text-3xl" : "text-2xl"
+        )}>
+          Pagamento
+        </h1>
 
-        <Card className="p-6 mb-4 bg-white shadow-sm border-slate-100">
-            <h3 className="text-xs font-bold text-slate-400 uppercase mb-3 tracking-wide">Resumo</h3>
-            <div className="space-y-2 text-sm text-slate-700">
+        <Card className={cn(
+          "p-6 mb-4 transition-colors",
+          isHighContrast ? "bg-zinc-900 border-2 border-white text-white" : "bg-white shadow-sm border-slate-100"
+        )}>
+            <h3 className={cn(
+              "font-bold uppercase mb-3 tracking-wide",
+              isHighContrast ? "text-yellow-400" : "text-slate-400",
+              isLargeText ? "text-sm" : "text-xs"
+            )}>
+              Resumo
+            </h3>
+            
+            <div className={cn("space-y-2", isLargeText ? "text-lg" : "text-sm", isHighContrast ? "text-white" : "text-slate-700")}>
                 {qtdAlmoco > 0 && (
                     <div className="flex justify-between">
                         <span>{qtdAlmoco}x Almoço</span>
@@ -82,24 +105,39 @@ export default function PaymentPage() {
                         <span>R$ {(qtdJantar * APP_CONFIG.TICKET_PRICE).toFixed(2)}</span>
                     </div>
                 )}
-                <div className="h-px bg-slate-100 my-2" />
-                <div className="flex justify-between font-bold text-lg text-slate-900">
+                
+                <div className={cn("h-px my-2", isHighContrast ? "bg-white" : "bg-slate-100")} />
+                
+                <div className={cn(
+                  "flex justify-between font-bold",
+                  isHighContrast ? "text-yellow-400" : "text-slate-900",
+                  isLargeText ? "text-2xl" : "text-lg"
+                )}>
                     <span>Total</span>
                     <span>R$ {totalEstimado}</span>
                 </div>
             </div>
         </Card>
 
-        <Card className="p-6 flex flex-col items-center gap-4 bg-white shadow-md border-slate-100">
+        <Card className={cn(
+          "p-6 flex flex-col items-center gap-4 transition-all",
+          isHighContrast ? "bg-zinc-900 border-2 border-white" : "bg-white shadow-md border-slate-100"
+        )}>
           
           {step === 'CONFIRM' && (
             <div className="w-full text-center space-y-4">
-              <p className="text-sm text-slate-600">
+              <p className={cn(isHighContrast ? "text-white" : "text-slate-600", isLargeText ? "text-lg" : "text-sm")}>
                 Pagamento via <strong>PIX</strong>.
               </p>
               <Button
                 onClick={handleConfirmPayment}
-                className="w-full bg-gradient-to-r from-blue-600 to-sky-500 h-12 shadow-lg"
+                className={cn(
+                  "w-full shadow-lg font-bold transition-all",
+                  isHighContrast 
+                    ? "bg-yellow-400 text-black hover:bg-yellow-500 border-2 border-white" 
+                    : "bg-gradient-to-r from-blue-600 to-sky-500 text-white",
+                  isLargeText ? "h-14 text-xl" : "h-12"
+                )}
                 disabled={loading}
               >
                 {loading ? <Loader2 className="animate-spin mr-2" /> : "Gerar QR Code Pix"}
@@ -109,7 +147,10 @@ export default function PaymentPage() {
 
           {step === 'PIX_WAITING' && pixPayload && (
              <div className="flex flex-col items-center w-full animate-in fade-in zoom-in-95 duration-300">
-                <div className="bg-white p-4 rounded-xl border border-slate-200 mb-4 shadow-inner flex justify-center">
+                <div className={cn(
+                  "p-4 rounded-xl border mb-4 flex justify-center",
+                  isHighContrast ? "bg-white border-4 border-yellow-400" : "bg-white border-slate-200 shadow-inner"
+                )}>
                     {pixPayload.img ? (
                         <img src={pixPayload.img} alt="QR Pix" className="h-48 w-48 object-contain" />
                     ) : (
@@ -120,14 +161,22 @@ export default function PaymentPage() {
                 </div>
                 
                 <div className="w-full mb-6">
-                    <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1 block">
+                    <label className={cn(
+                      "font-bold uppercase tracking-wider mb-1 block",
+                      isHighContrast ? "text-yellow-400" : "text-slate-400",
+                      isLargeText ? "text-xs" : "text-[10px]"
+                    )}>
                       Pix Copia e Cola
                     </label>
                     <div className="flex gap-2">
                         <input 
                             readOnly 
                             value={pixPayload.text} 
-                            className="text-xs border rounded-md px-3 py-2 flex-1 bg-slate-50 text-slate-600 truncate font-mono focus:outline-none focus:ring-1 focus:ring-blue-500" 
+                            className={cn(
+                              "border rounded-md px-3 py-2 flex-1 truncate font-mono outline-none",
+                              isHighContrast ? "bg-black text-white border-white focus:border-yellow-400" : "bg-slate-50 text-slate-600 border-slate-200 focus:ring-1 focus:ring-blue-500",
+                              isLargeText ? "text-base h-12" : "text-xs"
+                            )} 
                         />
                         <Button 
                           variant="outline" 
@@ -136,15 +185,23 @@ export default function PaymentPage() {
                             navigator.clipboard.writeText(pixPayload.text);
                             alert("Código copiado!");
                           }}
+                          className={cn(
+                            isHighContrast && "border-white text-white hover:bg-zinc-800",
+                            isLargeText && "h-12 w-12"
+                          )}
                         >
-                            <Copy className="h-4 w-4" />
+                            <Copy className={cn(isLargeText ? "h-6 w-6" : "h-4 w-4")} />
                         </Button>
                     </div>
                 </div>
 
                 <Button 
                     onClick={handlePixPaid}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg"
+                    className={cn(
+                      "w-full font-bold shadow-lg",
+                      isHighContrast ? "bg-green-500 text-black hover:bg-green-400 border-2 border-white" : "bg-green-600 hover:bg-green-700 text-white",
+                      isLargeText ? "h-14 text-xl" : "h-12"
+                    )}
                 >
                     Já realizei o pagamento
                 </Button>
@@ -153,14 +210,43 @@ export default function PaymentPage() {
 
           {step === 'SUCCESS' && (
               <div className="flex flex-col items-center py-6 animate-in zoom-in duration-500">
-                  <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <CheckCircle2 className="h-10 w-10 text-green-600" />
+                  <div className={cn(
+                    "rounded-full flex items-center justify-center mb-4",
+                    isLargeText ? "h-24 w-24" : "h-20 w-20",
+                    isHighContrast ? "bg-green-900" : "bg-green-100"
+                  )}>
+                    <CheckCircle2 className={cn(
+                      "text-green-600",
+                      isLargeText ? "h-12 w-12" : "h-10 w-10",
+                      isHighContrast && "text-green-400"
+                    )} />
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900">Pedido Recebido!</h2>
-                  <p className="text-center text-sm text-slate-500 mt-2">
+                  
+                  <h2 className={cn(
+                    "font-bold",
+                    isHighContrast ? "text-white" : "text-slate-900",
+                    isLargeText ? "text-2xl" : "text-xl"
+                  )}>
+                    Pedido Recebido!
+                  </h2>
+                  
+                  <p className={cn(
+                    "text-center mt-2",
+                    isHighContrast ? "text-gray-300" : "text-slate-500",
+                    isLargeText ? "text-lg" : "text-sm"
+                  )}>
                       Aguardando confirmação do banco.
                   </p>
-                  <Button variant="ghost" className="mt-6 text-blue-600" onClick={() => router.push('/home')}>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={cn(
+                      "mt-6",
+                      isHighContrast ? "text-yellow-400 hover:text-yellow-300" : "text-blue-600",
+                      isLargeText && "text-lg"
+                    )} 
+                    onClick={() => router.push('/home')}
+                  >
                     Voltar ao Início
                   </Button>
               </div>

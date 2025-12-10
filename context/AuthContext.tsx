@@ -28,6 +28,7 @@ type AuthContextType = {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
+  updateUserPreferences: (prefs: { highContrast: boolean; largeText: boolean }) => void;
   logout: () => void;
 };
 
@@ -60,6 +61,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setLoading(false);
   }, []);
+
+  const updateUserPreferences = (prefs: { highContrast: boolean; largeText: boolean }) => {
+    if (!user) return;
+
+    const updatedUser = {
+      ...user,
+      accessibilityOptions: {
+        highContrast: prefs.highContrast,
+        largeText: prefs.largeText
+      }
+    };
+    setUser(updatedUser);
+
+    const { "ru-facil-cliente": savedCliente } = parseCookies();
+    if (savedCliente) {
+      const clienteObj = JSON.parse(savedCliente);
+      clienteObj.prefereAltoContraste = prefs.highContrast;
+      clienteObj.prefereFonteGrande = prefs.largeText;
+      
+      setCookie(null, "ru-facil-cliente", JSON.stringify(clienteObj), {
+        maxAge: 7 * 24 * 60 * 60,
+        path: "/",
+      });
+    }
+  };
 
   async function login(email: string, password: string) {
     try {
@@ -116,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         register,
+        updateUserPreferences,
         logout,
       }}
     >

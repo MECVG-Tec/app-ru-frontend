@@ -4,13 +4,18 @@ import { useEffect, useState } from "react";
 import { DashboardHeader } from "@/components/home/DashboardHeader";
 import { MealsSummary } from "@/components/home/MealsSummary";
 import { MenuTable } from "@/components/home/MenuTable";
-import { UseTicketModal } from "@/components/home/UseTicketModal"; // Importe o modal novo
-import { FeedbackModal } from "@/components/home/FeedbackModal";   // Importe o modal de avaliação
+import { UseTicketModal } from "@/components/home/UseTicketModal";
+import { FeedbackModal } from "@/components/home/FeedbackModal";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/services/api";
+import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   const { user, logout } = useAuth();
+  
+  // Acessibilidade
+  const isHighContrast = user?.accessibilityOptions?.highContrast;
+  const isLargeText = user?.accessibilityOptions?.largeText;
   
   const [lunchBalance, setLunchBalance] = useState(0);
   const [dinnerBalance, setDinnerBalance] = useState(0);
@@ -44,15 +49,27 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50/50 flex justify-center pb-28">
+    <main className={cn(
+      "min-h-screen flex justify-center pb-28 transition-colors duration-300",
+      isHighContrast ? "bg-black" : "bg-slate-50/50"
+    )}>
       <div className="w-full max-w-md flex flex-col">
+        
         <header className="flex items-center justify-between px-6 pt-8 pb-2">
-          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-full">
+          <span className={cn(
+            "font-bold uppercase tracking-widest px-2 py-1 rounded-full",
+            isHighContrast ? "bg-yellow-400 text-black border border-white" : "text-blue-600 bg-blue-50",
+            isLargeText ? "text-xs" : "text-[10px]"
+          )}>
             RU Fácil App
           </span>
           <button
             onClick={logout}
-            className="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors"
+            className={cn(
+              "font-medium transition-colors",
+              isHighContrast ? "text-white hover:text-yellow-400" : "text-slate-400 hover:text-red-500",
+              isLargeText ? "text-base" : "text-xs"
+            )}
           >
             Sair
           </button>
