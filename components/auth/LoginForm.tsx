@@ -32,7 +32,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="rounded-2xl shadow-xl bg-white/95 backdrop-blur-sm p-8 border-none animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <Card 
+      className="rounded-2xl shadow-xl bg-white/95 backdrop-blur-sm p-8 border-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+      data-testid="login-card"
+    >
       <div className="mb-6 text-center">
         <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">Login</h1>
         <p className="text-sm text-slate-500 mt-2">
@@ -52,6 +55,7 @@ export function LoginForm() {
             required
             className="bg-slate-50/50"
             disabled={loading}
+            data-testid="email-input"
           />
         </div>
 
@@ -66,6 +70,7 @@ export function LoginForm() {
             required
             className="bg-slate-50/50"
             disabled={loading}
+            data-testid="password-input"
           />
         </div>
 
@@ -74,13 +79,17 @@ export function LoginForm() {
           <Link
             href="/forgot-password"
             className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+            data-testid="forgot-password-link"
           >
             Esqueceu sua senha?
           </Link>
         </div>
 
         {errorMsg && (
-          <div className="p-3 rounded-md bg-red-50 border border-red-100 text-red-600 text-xs font-medium text-center animate-in zoom-in-95">
+          <div 
+            className="p-3 rounded-md bg-red-50 border border-red-100 text-red-600 text-xs font-medium text-center animate-in zoom-in-95"
+            data-testid="login-error-msg"
+          >
             {errorMsg}
           </div>
         )}
@@ -89,6 +98,7 @@ export function LoginForm() {
           type="submit"
           className="w-full h-11 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-medium shadow-lg shadow-blue-500/25 transition-all active:scale-[0.98]"
           disabled={loading}
+          data-testid="login-submit-btn"
         >
           {loading ? (
             <>
@@ -102,7 +112,11 @@ export function LoginForm() {
 
         <p className="text-sm text-slate-500 text-center mt-4">
           Não tem uma conta?{' '}
-          <Link href="/register" className="text-blue-600 font-medium hover:underline">
+          <Link 
+            href="/register" 
+            className="text-blue-600 font-medium hover:underline"
+            data-testid="register-link"
+          >
             Registre-se
           </Link>
         </p>

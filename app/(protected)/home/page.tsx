@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 export default function HomePage() {
   const { user, logout } = useAuth();
   
-  // Acessibilidade
   const isHighContrast = user?.accessibilityOptions?.highContrast;
   const isLargeText = user?.accessibilityOptions?.largeText;
   
@@ -49,10 +48,13 @@ export default function HomePage() {
   };
 
   return (
-    <main className={cn(
-      "min-h-screen flex justify-center pb-28 transition-colors duration-300",
-      isHighContrast ? "bg-black" : "bg-slate-50/50"
-    )}>
+    <main 
+      className={cn(
+        "min-h-screen flex justify-center pb-28 transition-colors duration-300",
+        isHighContrast ? "bg-black" : "bg-slate-50/50"
+      )}
+      data-testid="home-page-container"
+    >
       <div className="w-full max-w-md flex flex-col">
         
         <header className="flex items-center justify-between px-6 pt-8 pb-2">
@@ -70,22 +72,29 @@ export default function HomePage() {
               isHighContrast ? "text-white hover:text-yellow-400" : "text-slate-400 hover:text-red-500",
               isLargeText ? "text-base" : "text-xs"
             )}
+            data-testid="logout-btn"
           >
             Sair
           </button>
         </header>
 
         <section className="px-5 pt-2 space-y-6">
-          <DashboardHeader name={user?.name ?? "Estudante"} />
+          <div data-testid="dashboard-header">
+             <DashboardHeader name={user?.name ?? "Estudante"} />
+          </div>
 
-          <MealsSummary
-            lunchBalance={lunchBalance}
-            dinnerBalance={dinnerBalance}
-            loading={loadingBalance}
-            onConsumeClick={() => setUseModalOpen(true)}
-          />
+          <div data-testid="meals-summary-section">
+            <MealsSummary
+              lunchBalance={lunchBalance}
+              dinnerBalance={dinnerBalance}
+              loading={loadingBalance}
+              onConsumeClick={() => setUseModalOpen(true)}
+            />
+          </div>
 
-          <MenuTable />
+          <div data-testid="menu-table-section">
+            <MenuTable />
+          </div>
         </section>
       </div>
 

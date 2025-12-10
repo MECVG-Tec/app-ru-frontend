@@ -77,7 +77,7 @@ export const api = {
     fetchClient(`/api/v1/fichas/compras?email=${email}`),
 
   getMenu: (date: string, mealType: "ALMOCO" | "JANTAR") =>
-    fetchClient(`/api/v1/cardapios?data=${date}&tipoRefeicao=${mealType}`),
+    fetchClient(`/api/v1/menu/${date}?meal=${mealType}`),
 
   createPurchase: (data: CreatePurchaseRequest): Promise<PurchaseResponse> =>
     fetchClient("/api/v1/fichas/compras", {
